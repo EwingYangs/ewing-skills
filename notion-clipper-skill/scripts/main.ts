@@ -1,3 +1,16 @@
+/**
+ * Notion Clipper - Save web pages to Notion
+ *
+ * NETWORK COMPATIBILITY:
+ * - Use tsx runtime (NOT bun) - bun has proxy issues with https module
+ * - Unset proxy env vars for direct connection: unset http_proxy https_proxy all_proxy
+ * - Script includes 6 retries with exponential backoff for unstable networks
+ * - All invalid URLs are removed to avoid Notion API validation errors
+ *
+ * RECOMMENDED USAGE:
+ * (cd scripts && unset http_proxy https_proxy all_proxy && npx -y tsx main.ts <url> --database-name "Resources")
+ */
+
 import { createInterface } from "node:readline";
 import process from "node:process";
 

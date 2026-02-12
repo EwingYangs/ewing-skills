@@ -86,14 +86,22 @@ export async function readNotionApiKey(): Promise<string> {
 }
 
 /**
- * Call Notion API with Node https only (no fetch, no SDK). Avoids proxy and empty body.
- * If you get ECONNREFUSED 208.x.x.x: run with: unset https_proxy http_proxy all_proxy
+ * Call Notion API with Node https.
+ *
+ * NETWORK OPTIMIZATIONS APPLIED:
+ * - 6 retries with exponential backoff (handles unstable networks)
+ * - 30s timeout (increased from 25s)
+ * - Retry on: ECONNREFUSED, ECONNRESET, ETIMEDOUT, timeout
+ *
+ * Note: Node.js https module doesn't support proxy env vars.
+ * For best results: use network without proxy or use tsx runtime.
  */
 async function notionRequest<T>(
   apiKey: string,
   method: string,
   endpoint: string,
-  body?: Record<string, unknown>
+  body?: Record<string, unknown>,
+  retries: number = 6
 ): Promise<T> {
   const url = `${NOTION_API_BASE_URL}${endpoint}`;
   const parsed = new URL(url);
@@ -116,55 +124,81 @@ async function notionRequest<T>(
     );
   }
 
-  const { statusCode, responseBody } = await new Promise<{
-    statusCode: number;
-    responseBody: string;
-  }>((resolve, reject) => {
-    const req = https.request(options, (res) => {
-      const chunks: Buffer[] = [];
-      res.on("data", (chunk: Buffer) => chunks.push(chunk));
-      res.on("end", () =>
-        resolve({
-          statusCode: res.statusCode ?? 0,
-          responseBody: Buffer.concat(chunks).toString("utf8"),
-        })
-      );
-      res.on("error", reject);
-    });
-    req.on("error", reject);
-    req.setTimeout(25_000, () => {
-      req.destroy();
-      reject(new Error("Notion API request timeout"));
-    });
-    if (postData) req.write(postData, "utf8");
-    req.end();
-  });
+  let lastError: Error | null = null;
 
-  if (responseBody.length === 0) {
-    throw new Error(
-      `Notion API returned empty body (status ${statusCode}). Notion requests use direct HTTPS (no proxy).`
-    );
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) {
+      const backoffMs = Math.min(1000 * Math.pow(2, attempt - 1), 4000);
+      console.log(`  Retry ${attempt}/${retries} after ${backoffMs}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+    }
+
+    try {
+      const { statusCode, responseBody } = await new Promise<{
+        statusCode: number;
+        responseBody: string;
+      }>((resolve, reject) => {
+        const req = https.request(options, (res) => {
+          const chunks: Buffer[] = [];
+          res.on("data", (chunk: Buffer) => chunks.push(chunk));
+          res.on("end", () =>
+            resolve({
+              statusCode: res.statusCode ?? 0,
+              responseBody: Buffer.concat(chunks).toString("utf8"),
+            })
+          );
+          res.on("error", reject);
+        });
+        req.on("error", reject);
+        req.setTimeout(30_000, () => {
+          req.destroy();
+          reject(new Error("Notion API request timeout"));
+        });
+        if (postData) req.write(postData, "utf8");
+        req.end();
+      });
+
+      if (responseBody.length === 0) {
+        throw new Error(
+          `Notion API returned empty body (status ${statusCode}).`
+        );
+      }
+
+      let data: unknown;
+      try {
+        data = JSON.parse(responseBody);
+      } catch (e) {
+        throw new Error(
+          `Notion API returned invalid JSON (status ${statusCode}). First 200 chars: ${responseBody.slice(0, 200)}`
+        );
+      }
+
+      if (statusCode < 200 || statusCode >= 300) {
+        const msg = (data as { message?: string })?.message ?? JSON.stringify(data);
+        throw new Error(`Notion API error (${statusCode}): ${msg}`);
+      }
+
+      if (data == null) {
+        throw new Error("Notion API returned empty body");
+      }
+
+      return data as T;
+    } catch (error) {
+      lastError = error as Error;
+      const isRetryable =
+        lastError.message.includes("ECONNREFUSED") ||
+        lastError.message.includes("ECONNRESET") ||
+        lastError.message.includes("ETIMEDOUT") ||
+        lastError.message.includes("timeout") ||
+        lastError.message.includes("empty body");
+
+      if (!isRetryable || attempt >= retries) {
+        throw lastError;
+      }
+    }
   }
 
-  let data: unknown;
-  try {
-    data = JSON.parse(responseBody);
-  } catch (e) {
-    throw new Error(
-      `Notion API returned invalid JSON (status ${statusCode}). First 200 chars: ${responseBody.slice(0, 200)}`
-    );
-  }
-
-  if (statusCode < 200 || statusCode >= 300) {
-    const msg = (data as { message?: string })?.message ?? JSON.stringify(data);
-    throw new Error(`Notion API error (${statusCode}): ${msg}`);
-  }
-
-  if (data == null) {
-    throw new Error("Notion API returned empty body");
-  }
-
-  return data as T;
+  throw lastError || new Error("Notion API request failed");
 }
 
 /**
@@ -255,7 +289,14 @@ export async function searchDatabases(
     }>;
   }>(apiKey, "POST", "/search", body);
 
-  const results = response?.results;
+  // Add null check for response
+  if (!response) {
+    throw new Error(
+      "Notion search returned null response. Check your API key and integration access."
+    );
+  }
+
+  const results = response.results;
   if (!Array.isArray(results)) {
     throw new Error(
       "Notion search returned unexpected format. Share at least one database with your integration."

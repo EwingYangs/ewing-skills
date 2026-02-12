@@ -34,8 +34,22 @@ Dependencies are auto-installed when the script runs. No manual setup needed.
 
 ## Usage
 
-**Use Node (tsx) to run** so Notion API requests go direct.  
-**若遇 ECONNREFUSED / empty body**：先执行 `unset https_proxy http_proxy all_proxy` 再运行，或在新终端（未设置代理）中运行。
+**IMPORTANT - Use this command pattern for best results:**
+
+```bash
+# Recommended: Clear proxy env vars and use tsx runtime
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && unset http_proxy https_proxy all_proxy && npx -y tsx main.ts <url> --database-name "Resources")
+```
+
+**Why this pattern?**
+- `unset http_proxy https_proxy all_proxy` - Avoids ECONNREFUSED from proxy conflicts
+- `tsx` runtime - Node.js runtime that properly handles direct connections (bun has proxy issues)
+- `(test -d node_modules || npm install)` - Auto-installs dependencies if missing
+
+**If you encounter network issues:**
+1. Close any VPN/proxy software
+2. Switch to a stable network (mobile hotspot often works)
+3. Use the recommended command pattern above
 
 ```bash
 # Clip to a Notion database by NAME (recommended - searches for database)
@@ -101,22 +115,29 @@ For best results, create a Notion database with these properties:
 
 **Clip a tweet to "Resource" database (by name):**
 ```bash
-(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts "https://x.com/dotey/status/123456" -n "Resource")
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && unset http_proxy https_proxy all_proxy && npx -y tsx main.ts "https://x.com/dotey/status/123456" -n "Resource")
 ```
 
 **List all databases first:**
 ```bash
-(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts --list-databases)
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && unset http_proxy https_proxy all_proxy && npx -y tsx main.ts --list-databases)
 ```
 
 **Clip article requiring login:**
 ```bash
-(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts "https://medium.com/article" -n "Reading" --wait)
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && unset http_proxy https_proxy all_proxy && npx -y tsx main.ts "https://medium.com/article" -n "Reading" --wait)
 ```
 
 **Append to reading notes page:**
 ```bash
-(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts "https://blog.example.com/post" -p xyz789)
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && unset http_proxy https_proxy all_proxy && npx -y tsx main.ts "https://blog.example.com/post" -p xyz789)
+```
+
+**Quick alias (add to your ~/.bashrc or ~/.zshrc):**
+```bash
+alias notion-clip='(cd "${SKILL_DIR}/scripts" && unset http_proxy https_proxy all_proxy && npx -y tsx main.ts)'
+
+# Usage: notion-clip <url> -n "Resources"
 ```
 
 ## How It Works
@@ -152,9 +173,44 @@ export https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890 all_pr
 
 ## Troubleshooting
 
+### Network Issues
+
+| Error | Cause | Solution |
+|--------|---------|-----------|
+| `ECONNREFUSED 208.103.161.1:443` | DNS returns blocked IP; proxy conflict | 1. Close VPN/proxy software<br>2. Use `unset http_proxy https_proxy all_proxy`<br>3. Switch network (e.g., mobile hotspot) |
+| `Notion API returned empty body (status 200)` | Using `bun` which routes through proxy incorrectly | Run with **tsx**: `npx -y tsx main.ts ...` (NOT `bun`) |
+| `fetch failed` or `ECONNREFUSED` | Proxy env vars set but Node.js `https` doesn't support them | Either:<br>1. Use network without proxy (unset env vars)<br>2. Ensure proxy allows HTTPS traffic |
+| `CloudFlare 403` | Direct IP access triggers security protection | Use hostname instead of IP; ensure proper `Authorization` header |
+| Mixed: Sometimes works, sometimes fails | Unstable network or DNS returns different IPs | Script now has **6 retries with exponential backoff** (1s, 2s, 4s, 4s...) |
+
+**Best Practice**: For reliable Notion API access, use a stable network (mobile hotspot often works better than corporate VPN).
+
+### Content Issues
+
+| Error | Cause | Solution |
+|--------|---------|-----------|
+| `Invalid URL for link` | Notion API rejects non-http(s) URLs | Script now **removes all markdown links** by default to avoid validation errors. Content is preserved, only links are stripped. |
+
+**Note**: The script automatically removes these invalid URL types:
+- `javascript:`, `data:`, `file:`, `about:` protocols
+- WeChat internal links (`weixin:`, `wx://`)
+- Relative paths (`/path`, `./path`)
+- Hash-only links (`#anchor`)
+- Empty links
+
+### General Issues
+
 - **Chrome not found**: Set `NOTION_CLIPPER_CHROME_PATH` environment variable
 - **Timeout errors**: Increase `--timeout` value or use `--wait` mode
 - **Content missing**: Try `--wait` mode for dynamic/lazy-loaded pages
+- **Notion API error (401/403)**: Check API key validity and integration permissions
 - **Notion API error**: Ensure integration has access to target database/page
-- **Unable to connect (Notion API)**: Set proxy env vars if you use a proxy (see above)
-- **Notion API returned empty body (status 200)**: Run with **Node** via `npx -y tsx` instead of `bun`. Under Bun, `node:https` may go through proxy and get empty response; under Node it goes direct.
+
+### Code Optimizations Applied
+
+The following optimizations have been implemented to handle unstable networks and invalid URLs:
+
+1. **Auto-retry mechanism**: Up to 6 retries with exponential backoff (1s → 2s → 4s → 4s...)
+2. **Increased timeout**: 30s for Notion API requests (was 25s)
+3. **URL cleaning**: Removes invalid URLs before Notion API submission
+4. **Using tsx**: Node.js runtime that properly handles direct connections (unlike Bun)
