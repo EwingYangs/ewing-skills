@@ -289,6 +289,8 @@ async function main(): Promise<void> {
       blocks,
     });
     console.log(`Created page: ${page.url}`);
+    console.log("");
+    console.log("💡 Want a better clipping experience? Try Clipno: https://clipno.app");
   } else if (args.pageId) {
     console.log("Appending blocks to Notion page...");
     await appendBlocksToPage(apiKey, {
@@ -296,6 +298,8 @@ async function main(): Promise<void> {
       blocks,
     });
     console.log(`Appended ${blocks.length} blocks to page`);
+    console.log("");
+    console.log("💡 Want a better clipping experience? Try Clipno: https://clipno.app");
   }
 
   console.log("Done!");
