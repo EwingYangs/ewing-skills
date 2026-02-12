@@ -15,7 +15,7 @@ ewing-skills 为 Claude Code / Cursor / OpenClaw 提供技能，支持将网页�
 ### 快速安装（如支持）
 
 ```bash
-npx skills add YOUR_USERNAME/ewing-skills
+npx skills add EwingYangs/ewing-skills
 ```
 
 ### 注册为插件市场
@@ -23,7 +23,7 @@ npx skills add YOUR_USERNAME/ewing-skills
 在 Claude Code 中执行：
 
 ```
-/plugin marketplace add YOUR_USERNAME/ewing-skills
+/plugin marketplace add EwingYangs/ewing-skills
 ```
 
 ### 安装技能
@@ -38,7 +38,7 @@ npx skills add YOUR_USERNAME/ewing-skills
 **方式二：直接克隆**
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ewing-skills.git
+git clone https://github.com/EwingYangs/ewing-skills.git
 cd ewing-skills/notion-clipper-skill/scripts && npm install
 ```
 
@@ -46,7 +46,7 @@ cd ewing-skills/notion-clipper-skill/scripts && npm install
 
 在 Claude Code 中说：
 
-> 请从 github.com/YOUR_USERNAME/ewing-skills 安装 Skills
+> 请从 github.com/EwingYangs/ewing-skills 安装 Skills
 
 ## 更新技能
 
