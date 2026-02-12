@@ -70,6 +70,8 @@ To update to the latest version:
 
 Clip web pages to Notion. Uses Chrome CDP for full JavaScript rendering, converts to Markdown, then to Notion blocks.
 
+**First run**: Dependencies are auto-installed when you run the script. No manual setup needed.
+
 #### Prerequisites
 
 1. **Notion API Key**: Create integration at https://notion.so/my-integrations
@@ -144,6 +146,7 @@ Create a Notion database with:
 
 | Issue | Solution |
 |-------|----------|
+| Script fails (missing deps) | Run `cd <skill_path>/notion-clipper-skill/scripts && npm install` |
 | Chrome not found | Set `NOTION_CLIPPER_CHROME_PATH` |
 | ECONNREFUSED / empty body | Run `unset https_proxy http_proxy all_proxy` first, or use terminal without proxy |
 | Content missing | Use `--wait` for dynamic/lazy-loaded pages |

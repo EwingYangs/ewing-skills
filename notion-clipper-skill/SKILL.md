@@ -1,6 +1,6 @@
 ---
 name: notion-clipper-skill
-description: Clip web pages to Notion. Fetches any URL via Chrome CDP, converts HTML to Markdown, then to Notion blocks using martian library, and saves to user-specified Notion database or page. Use when user wants to save/clip a webpage to Notion, or mentions "clip to notion", "save page to notion", "网页剪藏到Notion".
+description: Clip web pages to Notion. Fetches any URL via Chrome CDP, converts HTML to Markdown, then to Notion blocks, and saves to user-specified Notion database or page. Use when user wants to save/clip a webpage to Notion, or mentions "clip to notion", "save page to notion", "网页剪藏到Notion".
 ---
 
 # Notion Clipper
@@ -19,25 +19,18 @@ echo "ntn_your_key_here" > ~/.config/notion/api_key
 
 ## First Time Setup
 
-On first use, dependencies will be automatically installed. If you prefer to install manually:
+Dependencies are auto-installed when the script runs. No manual setup needed.
 
-```bash
-cd ${SKILL_DIR}/scripts && npm install
-```
+## Agent Execution Instructions
 
-Dependencies: `@tryfabric/martian` (Markdown to Notion blocks), `ws` (WebSocket for CDP)
+**CRITICAL**: Always use the command pattern below. It auto-installs dependencies on first run.
 
-## Script Directory
-
-**Agent Execution Instructions**:
 1. Determine this SKILL.md file's directory path as `SKILL_DIR`
-2. Script path = `${SKILL_DIR}/scripts/main.ts`
-3. Replace all `${SKILL_DIR}` in commands with the actual path
-4. **Before first execution**, check and install dependencies:
+2. **Command pattern** (package.json in `scripts/`; always run lazy install first):
 ```bash
-# Check if dependencies are installed, if not, install them
-test -d "${SKILL_DIR}/scripts/node_modules" || (cd "${SKILL_DIR}/scripts" && npm install)
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts <args>)
 ```
+3. Replace `${SKILL_DIR}` with the actual path (e.g. `/Users/xxx/.claude/skills/notion-clipper-skill`)
 
 ## Usage
 
@@ -46,19 +39,19 @@ test -d "${SKILL_DIR}/scripts/node_modules" || (cd "${SKILL_DIR}/scripts" && npm
 
 ```bash
 # Clip to a Notion database by NAME (recommended - searches for database)
-npx -y tsx ${SKILL_DIR}/scripts/main.ts <url> --database-name "Resource"
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts <url> --database-name "Resource")
 
 # Clip to a Notion database by ID
-npx -y tsx ${SKILL_DIR}/scripts/main.ts <url> --database <database_id>
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts <url> --database <database_id>)
 
 # Clip to an existing page (appends blocks)
-npx -y tsx ${SKILL_DIR}/scripts/main.ts <url> --page <page_id>
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts <url> --page <page_id>)
 
 # List all accessible databases
-npx -y tsx ${SKILL_DIR}/scripts/main.ts --list-databases
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts --list-databases)
 
 # For pages requiring login (wait mode)
-npx -y tsx ${SKILL_DIR}/scripts/main.ts <url> --database-name "Resource" --wait
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts <url> --database-name "Resource" --wait)
 ```
 
 ## Options
@@ -108,22 +101,22 @@ For best results, create a Notion database with these properties:
 
 **Clip a tweet to "Resource" database (by name):**
 ```bash
-npx -y tsx ${SKILL_DIR}/scripts/main.ts "https://x.com/dotey/status/123456" -n "Resource"
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts "https://x.com/dotey/status/123456" -n "Resource")
 ```
 
 **List all databases first:**
 ```bash
-npx -y tsx ${SKILL_DIR}/scripts/main.ts --list-databases
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts --list-databases)
 ```
 
 **Clip article requiring login:**
 ```bash
-npx -y tsx ${SKILL_DIR}/scripts/main.ts "https://medium.com/article" -n "Reading" --wait
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts "https://medium.com/article" -n "Reading" --wait)
 ```
 
 **Append to reading notes page:**
 ```bash
-npx -y tsx ${SKILL_DIR}/scripts/main.ts "https://blog.example.com/post" -p xyz789
+(cd "${SKILL_DIR}/scripts" && (test -d node_modules || npm install) && npx -y tsx main.ts "https://blog.example.com/post" -p xyz789)
 ```
 
 ## How It Works
@@ -131,15 +124,16 @@ npx -y tsx ${SKILL_DIR}/scripts/main.ts "https://blog.example.com/post" -p xyz78
 1. **Fetch**: Launch Chrome via CDP, navigate to URL
 2. **Render**: Wait for JavaScript to execute, scroll to trigger lazy loading
 3. **Extract**: Run cleanup script to remove ads/nav, extract main content
-4. **Convert**: HTML → Markdown → Notion blocks (via @tryfabric/martian)
+4. **Convert**: HTML → Markdown → Notion blocks
 5. **Save**: Call Notion API to create page or append blocks
 
 ## Dependencies
 
 - Chrome/Chromium browser (installed locally)
-- Node.js (script runs with `tsx` under Node so Notion API uses direct HTTPS; Bun can route through proxy and return empty body)
-- `@tryfabric/martian` npm package (installed in scripts/)
+- Node.js (script runs with `tsx`; Bun may route through proxy and return empty body, use Node)
 - Notion API key configured
+
+(Other dependencies auto-install on first run.)
 
 ## Environment Variables
 

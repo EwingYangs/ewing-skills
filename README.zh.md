@@ -70,6 +70,8 @@ cd ewing-skills/notion-clipper-skill/scripts && npm install
 
 将网页剪藏到 Notion。通过 Chrome CDP 完整渲染 JavaScript，转为 Markdown，再转为 Notion 块。
 
+**首次运行**：执行剪藏时会自动安装依赖，无需手动操作。
+
 #### 前置配置
 
 1. **Notion API Key**：在 https://notion.so/my-integrations 创建集成
@@ -144,6 +146,7 @@ npx -y tsx ${SKILL_DIR}/scripts/main.ts "https://example.com/post" -p xyz789
 
 | 问题 | 解决方案 |
 |------|----------|
+| 运行报错「找不到模块」 | 在 `scripts` 目录下执行 `npm install` |
 | 找不到 Chrome | 设置 `NOTION_CLIPPER_CHROME_PATH` |
 | ECONNREFUSED / 空 body | 先执行 `unset https_proxy http_proxy all_proxy`，或在未设代理的终端中运行 |
 | 内容缺失 | 对动态/懒加载页面使用 `--wait` |
