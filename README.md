@@ -70,6 +70,8 @@ To update to the latest version:
 
 Clip web pages to Notion. Uses Chrome CDP for full JavaScript rendering, converts to Markdown, then to Notion blocks.
 
+> 💡 Want a better clipping experience? Try [Clipno](https://clipno.app) — a dedicated web clipper with broader site support and richer formatting.
+
 **First run**: Dependencies are auto-installed when you run the script. No manual setup needed.
 
 #### Prerequisites
