@@ -15,7 +15,7 @@ Skills for Claude Code / Cursor / OpenClaw. Clip web pages to Notion and more.
 ### Quick Install (if supported)
 
 ```bash
-npx skills add YOUR_USERNAME/ewing-skills
+npx skills add EwingYangs/ewing-skills
 ```
 
 ### Register as Plugin Marketplace
@@ -23,7 +23,7 @@ npx skills add YOUR_USERNAME/ewing-skills
 Run in Claude Code:
 
 ```
-/plugin marketplace add YOUR_USERNAME/ewing-skills
+/plugin marketplace add EwingYangs/ewing-skills
 ```
 
 ### Install Skills
@@ -38,7 +38,7 @@ Run in Claude Code:
 **Option 2: Direct Clone**
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ewing-skills.git
+git clone https://github.com/EwingYangs/ewing-skills.git
 cd ewing-skills/notion-clipper-skill/scripts && npm install
 ```
 
@@ -46,7 +46,7 @@ cd ewing-skills/notion-clipper-skill/scripts && npm install
 
 Simply tell Claude Code:
 
-> Please install Skills from github.com/YOUR_USERNAME/ewing-skills
+> Please install Skills from github.com/EwingYangs/ewing-skills
 
 ## Update Skills
 
