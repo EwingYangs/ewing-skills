@@ -35,14 +35,21 @@ npx skills add EwingYangs/ewing-skills
 3. 选择要安装的技能
 4. 选择 **Install now**
 
-**方式二：直接克隆**
+**方式二：直接安装**
+
+```bash
+# 添加市场后，直接安装指定插件
+/plugin install notion-clipper-skill@ewing-skills
+```
+
+**方式三：直接克隆**
 
 ```bash
 git clone https://github.com/EwingYangs/ewing-skills.git
 cd ewing-skills/notion-clipper-skill/scripts && npm install
 ```
 
-**方式三：让 Agent 安装**
+**方式四：让 Agent 安装**
 
 在 Claude Code 中说：
 

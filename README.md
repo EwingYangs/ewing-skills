@@ -35,14 +35,21 @@ Run in Claude Code:
 3. Select the skill(s) to install
 4. Select **Install now**
 
-**Option 2: Direct Clone**
+**Option 2: Direct Install**
+
+```bash
+# Install specific plugin (after adding marketplace)
+/plugin install notion-clipper-skill@ewing-skills
+```
+
+**Option 3: Direct Clone**
 
 ```bash
 git clone https://github.com/EwingYangs/ewing-skills.git
 cd ewing-skills/notion-clipper-skill/scripts && npm install
 ```
 
-**Option 3: Ask the Agent**
+**Option 4: Ask the Agent**
 
 Simply tell Claude Code:
 
