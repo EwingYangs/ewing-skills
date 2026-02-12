@@ -1,6 +1,6 @@
 # ewing-skills
 
-English | [中文](#中文)
+English | [中文](README.zh.md)
 
 Skills for Claude Code / Cursor / OpenClaw. Clip web pages to Notion and more.
 
@@ -77,6 +77,7 @@ echo "ntn_your_key_here" > ~/.config/notion/api_key
 
 Replace `${SKILL_DIR}` with the path to `notion-clipper-skill` (e.g. `ewing-skills/notion-clipper-skill`).
 
+```bash
 # Clip to database by name (recommended)
 npx -y tsx ${SKILL_DIR}/scripts/main.ts <url> --database-name "Resource"
 
@@ -91,6 +92,7 @@ npx -y tsx ${SKILL_DIR}/scripts/main.ts --list-databases
 
 # Wait mode (for login-required pages)
 npx -y tsx ${SKILL_DIR}/scripts/main.ts <url> -n "Resource" --wait
+```
 
 #### Options
 
@@ -114,6 +116,7 @@ npx -y tsx ${SKILL_DIR}/scripts/main.ts <url> -n "Resource" --wait
 
 #### Examples
 
+```bash
 # Clip tweet to "Resource" database
 npx -y tsx ${SKILL_DIR}/scripts/main.ts "https://x.com/user/status/123" -n "Resource"
 
@@ -122,6 +125,7 @@ npx -y tsx ${SKILL_DIR}/scripts/main.ts "https://medium.com/article" -n "Reading
 
 # Append to page
 npx -y tsx ${SKILL_DIR}/scripts/main.ts "https://example.com/post" -p xyz789
+```
 
 #### Database Setup
 
@@ -148,28 +152,3 @@ Create a Notion database with:
 ## License
 
 MIT
-
----
-
-## 中文
-
-ewing-skills 为 Claude Code / Cursor / OpenClaw 提供技能，支持将网页剪藏到 Notion 等。
-
-### 安装
-
-```bash
-git clone https://github.com/YOUR_USERNAME/ewing-skills.git
-cd ewing-skills/notion-clipper-skill/scripts && npm install
-```
-
-### notion-clipper-skill 使用
-
-```bash
-# 剪藏到名为 "Resource" 的数据库
-npx -y tsx 路径/main.ts "https://example.com/article" -n "Resource"
-
-# 若遇代理导致连接失败：先执行
-unset https_proxy http_proxy all_proxy
-```
-
-详见 [notion-clipper-skill/SKILL.md](notion-clipper-skill/SKILL.md)。
